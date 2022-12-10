@@ -5,6 +5,8 @@ const { program } = require('commander');
 const fetch = require('node-fetch');
 const path = require('path');
 
+program.name('gh gitignore')
+
 const parseConfig = (config) => {
   const {
     tree
@@ -38,7 +40,6 @@ const fetchPayload = async (config) => {
       await fetchPayload(config[key]).then(console.log)
     })
   })
-
   program.parse();
 
 })()
