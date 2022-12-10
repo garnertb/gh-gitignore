@@ -1,0 +1,45 @@
+#!/usr/bin/env node
+
+const fs = require('fs').promises;
+const { program } = require('commander');
+const fetch = require('node-fetch');
+const path = require('path');
+
+const parseConfig = (config) => {
+  const {
+    tree
+  } = config
+  
+  const files = tree.filter((file) => file.path.includes('.gitignore') && !file.path.includes('/'))
+
+  return files.reduce((acc, file) => {
+    const command = file.path.toLowerCase().slice(0, file.path.indexOf('.gitignore'))
+    acc[command] = file
+    return acc
+  }, {})
+}
+
+const readConfiguration = async () => {
+  return fs.readFile(path.join(__dirname, 'gitignore.json')).then(JSON.parse)
+}
+
+const fetchPayload = async (config) => {
+  const payload = await fetch(config.url)
+  const data = await payload.json()
+  return Buffer.from(data.content, 'base64').toString()
+}
+
+
+(async ( ) => {
+  const config = await readConfiguration().then(parseConfig)
+  Object.keys(config).forEach((key) => {
+    program.command(key)
+    .description(`get the ${key} .gitignore file`)
+    .action(async () => {
+      await fetchPayload(config[key]).then(console.log)
+    })
+  })
+
+  program.parse();
+
+})()
