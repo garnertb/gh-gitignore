@@ -29,7 +29,6 @@ const fetchPayload = async (config) => {
   return Buffer.from(data.content, 'base64').toString()
 }
 
-
 (async ( ) => {
   const config = await readConfiguration().then(parseConfig)
   Object.keys(config).forEach((key) => {
