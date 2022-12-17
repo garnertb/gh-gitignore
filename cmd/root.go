@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-var gitignoreUrl = "https://api.github.com/repos/github/gitignore/contents"
+const gitignoreUrl = "https://api.github.com/repos/github/gitignore/contents"
 
 type Files struct {
 	Tree []File `json:"tree"`
@@ -39,14 +39,14 @@ type FileContent struct {
 	Encoding string `json:"encoding"`
 }
 
+type Commands map[string]File
+
 func (con File) getPayload() string {
 	var res FileContent
 	getJson(con.Url, &res)
 	var dec, _ = b64.StdEncoding.DecodeString(res.Content)
 	return string(dec)
 }
-
-type Commands map[string]File
 
 var commands = make(Commands)
 
