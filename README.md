@@ -25,3 +25,5 @@ Flags:
   -h, --help     help for gh-gitignore
   -t, --toggle   Help message for toggle
 ```
+
+cat gitignore.json | jq '.tree[].path' | tr '[:upper:]' '[:lower:]' | sed -e 's/\.gitignore//g'

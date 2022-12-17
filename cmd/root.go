@@ -5,7 +5,6 @@ Copyright © 2022 Tyler Garner garnertb@github.com
 package cmd
 
 import (
-	_ "embed"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -18,8 +17,7 @@ import (
 	"time"
 )
 
-//go:embed gitignore.json
-var fileContent string
+var gitignoreUrl = "https://api.github.com/repos/github/gitignore/contents"
 
 type Files struct {
 	Tree []File `json:"tree"`
@@ -27,11 +25,9 @@ type Files struct {
 }
 
 type File struct {
-	Path     string `json:"path"`
-	Mode     string `json:"mode"`
-	Filetype string `json:"type"`
-	Sha      string `json:"sha"`
-	Url      string `json:"url"`
+	Path string `json:"path"`
+	Sha  string `json:"sha"`
+	Url  string `json:"url"`
 }
 
 type FileContent struct {
@@ -43,28 +39,33 @@ type FileContent struct {
 	Encoding string `json:"encoding"`
 }
 
-type Commands map[string][]string
+func (con File) getPayload() string {
+	var res FileContent
+	getJson(con.Url, &res)
+	var dec, _ = b64.StdEncoding.DecodeString(res.Content)
+	return string(dec)
+}
+
+type Commands map[string]File
+
+var commands = make(Commands)
+
+func getGitIgnore(filetype string) string {
+	var command = commands[filetype]
+	return command.getPayload()
+}
 
 var rootCmd = &cobra.Command{
 	Use:       "gh-gitignore",
 	Short:     "Load gitignore files from GitHub into your project",
 	Long:      `Load gitignore files from GitHub into your project`,
 	ValidArgs: []string{"node", "go"},
-	Args:      cobra.ExactValidArgs(1),
-	Example:   "gh-gitignore node",
+	//ValidArgsFunction: ValidArgsFunction,
+	Args:    cobra.ExactValidArgs(1),
+	Example: "gh-gitignore node",
 	Run: func(cmd *cobra.Command, args []string) {
 		var filetype = args[0]
-
-		var files = ReadFile()
-
-		//get length of files
-		log.Println(files[filetype])
-
-		var res FileContent
-		getJson(files[filetype][0], &res)
-
-		var Dec, _ = b64.StdEncoding.DecodeString(res.Content)
-		fmt.Println(string(Dec))
+		fmt.Println(getGitIgnore(filetype))
 	},
 }
 
@@ -86,27 +87,25 @@ func getJson(url string, target interface{}) error {
 	return json.Unmarshal(body, &target)
 }
 
-func ReadFile() Commands {
-	var files Files
-	json.Unmarshal([]byte(fileContent), &files)
+func getCommands() Commands {
+	var files []File
+	getJson(gitignoreUrl, &files)
 
-	filteredCommands := make(map[string][]string)
-
-	for i := 0; i < len(files.Tree); i++ {
-		var file = files.Tree[i]
-
+	for i := 0; i < len(files); i++ {
+		var file = files[i]
 		if strings.Contains(file.Path, ".gitignore") {
 			command := strings.ToLower(strings.Split(file.Path, ".gitignore")[0])
-			filteredCommands[command] = append(filteredCommands[command], file.Url)
+			commands[command] = file
 		}
 	}
 
-	return filteredCommands
+	return commands
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+	getCommands()
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "There was an error while executing gitignore '%s'", err)

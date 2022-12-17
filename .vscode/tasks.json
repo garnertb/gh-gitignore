@@ -9,7 +9,10 @@
       "command": "go build",
       "options": {
         "cwd": "${workspaceFolder}"
-      }
+      },
+      "problemMatcher": [
+        "$go"
+      ]
     },
     {
       "label": "format",
