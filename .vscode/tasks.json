@@ -6,7 +6,21 @@
     {
       "label": "build",
       "type": "shell",
-      "command": "go build"
+      "command": "go build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "format",
+      "type": "shell",
+      "command": "gofmt -s -w .",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$go"
+      ]
     }
   ]
 }
