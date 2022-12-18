@@ -49,8 +49,7 @@ func (f File) getPayload() string {
 	getJson(f.Url, &res)
 
 	dec, _ := b64.StdEncoding.DecodeString(res.Content)
-	res.Payload = string(dec)
-	return res.Payload
+	return string(dec)
 }
 
 type FileContent struct {
@@ -60,7 +59,6 @@ type FileContent struct {
 	Url      string `json:"url"`
 	Content  string `json:"content"`
 	Encoding string `json:"encoding"`
-	Payload  string
 }
 
 type Commands struct {
