@@ -35,6 +35,15 @@ func (f File) isSupported() bool {
 	return strings.Contains(f.Path, ".gitignore")
 }
 
+func (f File) getPayload() string {
+	var res FileContent
+	getJson(f.Url, &res)
+
+	dec, _ := b64.StdEncoding.DecodeString(res.Content)
+	res.Payload = string(dec)
+	return res.Payload
+}
+
 type FileContent struct {
 	Sha      string `json:"sha"`
 	NodeId   string `json:"node_id"`
@@ -48,15 +57,6 @@ type FileContent struct {
 type Commands map[string]File
 
 var commands = make(Commands)
-
-func (con File) getPayload() string {
-	var res FileContent
-	getJson(con.Url, &res)
-
-	dec, _ := b64.StdEncoding.DecodeString(res.Content)
-	res.Payload = string(dec)
-	return res.Payload
-}
 
 func getGitIgnore(filetype string) string {
 	command := commands[filetype]
