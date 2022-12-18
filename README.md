@@ -13,15 +13,14 @@ gh gitignore node > .gitignore
 ## What types of projects does this extension support?
 
 ```bash
-Load gitignore files from GitHub into your project
+Load gitignore files from GitHub into your project.
 
 Usage:
-  gh-gitignore [flags]
+  gh-gitignore [arg] [flags]
 
 Examples:
-gh-gitignore [go]
+gh-gitignore node: returns the .gitignore for node projects
 
 Flags:
   -h, --help     help for gh-gitignore
-  -t, --toggle   Help message for toggle
 ```
