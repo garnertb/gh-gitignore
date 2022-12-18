@@ -105,15 +105,18 @@ func (c command) getGitIgnore() string {
 var commands = new(Commands)
 
 var rootCmd = &cobra.Command{
-	Use:       "gh-gitignore",
-	Short:     "Load gitignore files from GitHub into your project",
-	Long:      `Load gitignore files from GitHub into your project`,
+	Use:   "gh-gitignore [arg]",
+	Short: "Load gitignore files from GitHub into your project",
+	Long: `Load gitignore files from GitHub into your project.
+
+Supported gitignores are: ` + strings.Join(validArgs, ", ") + `
+	`,
 	ValidArgs: validArgs,
 	PreRun: func(cmd *cobra.Command, args []string) {
 		commands.loadCommands()
 	},
 	Args:    cobra.ExactValidArgs(1),
-	Example: "gh-gitignore node",
+	Example: "gh-gitignore node: returns the .gitignore for node projects",
 	Run: func(cmd *cobra.Command, args []string) {
 		v := commands.runCommand(args[0])
 		fmt.Println(v)
