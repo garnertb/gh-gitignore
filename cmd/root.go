@@ -20,6 +20,20 @@ import (
 
 const gitignoreUrl = "https://api.github.com/repos/github/gitignore/contents"
 
+var validArgs = []string{"al", "actionscript", "ada", "agda", "android", "appengine", "appceleratortitanium",
+	"archlinuxpackages", "autotools", "c++", "c", "cfwheels", "cmake", "cuda", "cakephp", "chefcookbook", "clojure",
+	"codeigniter", "commonlisp", "composer", "concrete5", "coq", "craftcms", "d", "dm", "dart", "delphi", "drupal",
+	"episerver", "eagle", "elisp", "elixir", "elm", "erlang", "expressionengine", "extjs", "fancy", "finale",
+	"flaxengine", "forcedotcom", "fortran", "fuelphp", "gwt", "gcov", "gitbook", "go", "godot", "gradle", "grails",
+	"haskell", "igorpro", "idris", "jboss", "jenkins_home", "java", "jekyll", "joomla", "julia", "kicad", "kohana",
+	"kotlin", "labview", "laravel", "leiningen", "lemonstand", "lilypond", "lithium", "lua", "magento", "maven", "mercury",
+	"metaprogrammingsystem", "nanoc", "nim", "node", "ocaml", "objective-c", "opa", "opencart", "oracleforms", "packer",
+	"perl", "phalcon", "playframework", "plone", "prestashop", "processing", "purescript", "python", "qooxdoo", "qt", "r",
+	"ros", "racket", "rails", "raku", "rhodesrhomobile", "ruby", "rust", "scons", "sass", "scala", "scheme", "scrivener",
+	"sdcc", "seamgen", "sketchup", "smalltalk", "stella", "sugarcrm", "swift", "symfony", "symphonycms", "tex", "terraform",
+	"textpattern", "turbogears2", "twincat3", "typo3", "unity", "unrealengine", "vvvv", "visualstudio", "waf", "wordpress",
+	"xojo", "yeoman", "yii", "zendframework", "zephir"}
+
 type File struct {
 	Path string `json:"path"`
 	Sha  string `json:"sha"`
@@ -50,7 +64,8 @@ type FileContent struct {
 }
 
 type Commands struct {
-	commands map[string]command
+	commands          map[string]command
+	supportedCommands []string
 }
 
 func (c *Commands) runCommand(name string) string {
@@ -62,6 +77,20 @@ func (c *Commands) registerCommand(com command) {
 		c.commands = make(map[string]command)
 	}
 	c.commands[com.Arg] = com
+	c.supportedCommands = append(c.supportedCommands, com.Arg)
+}
+
+func (c *Commands) loadCommands() {
+	var files []File
+	getJson(gitignoreUrl, &files)
+
+	for i := 0; i < len(files); i++ {
+		file := files[i]
+		if file.isSupported() {
+			arg := strings.ToLower(strings.Split(file.Path, ".gitignore")[0])
+			c.registerCommand(command{Arg: arg, File: file})
+		}
+	}
 }
 
 type command struct {
@@ -73,17 +102,20 @@ func (c command) getGitIgnore() string {
 	return c.File.getPayload()
 }
 
+var commands = new(Commands)
+
 var rootCmd = &cobra.Command{
 	Use:       "gh-gitignore",
 	Short:     "Load gitignore files from GitHub into your project",
 	Long:      `Load gitignore files from GitHub into your project`,
-	ValidArgs: []string{"node", "go"},
-	//ValidArgsFunction: ValidArgsFunction,
+	ValidArgs: validArgs,
+	PreRun: func(cmd *cobra.Command, args []string) {
+		commands.loadCommands()
+	},
 	Args:    cobra.ExactValidArgs(1),
 	Example: "gh-gitignore node",
 	Run: func(cmd *cobra.Command, args []string) {
-		c := loadCommands()
-		v := c.runCommand(args[0])
+		v := commands.runCommand(args[0])
 		fmt.Println(v)
 	},
 }
@@ -104,22 +136,6 @@ func getJson(url string, target interface{}) error {
 	}
 
 	return json.Unmarshal(body, &target)
-}
-
-func loadCommands() Commands {
-	var files []File
-	var commands Commands
-	getJson(gitignoreUrl, &files)
-
-	for i := 0; i < len(files); i++ {
-		file := files[i]
-		if file.isSupported() {
-			arg := strings.ToLower(strings.Split(file.Path, ".gitignore")[0])
-			commands.registerCommand(command{Arg: arg, File: file})
-		}
-	}
-
-	return commands
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
