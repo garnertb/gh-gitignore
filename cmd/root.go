@@ -31,6 +31,10 @@ type File struct {
 	Url  string `json:"url"`
 }
 
+func (f File) isSupported() bool {
+	return strings.Contains(f.Path, ".gitignore")
+}
+
 type FileContent struct {
 	Sha      string `json:"sha"`
 	NodeId   string `json:"node_id"`
@@ -97,7 +101,7 @@ func getCommands() Commands {
 
 	for i := 0; i < len(files); i++ {
 		file := files[i]
-		if strings.Contains(file.Path, ".gitignore") {
+		if file.isSupported() {
 			command := strings.ToLower(strings.Split(file.Path, ".gitignore")[0])
 			commands[command] = file
 		}
