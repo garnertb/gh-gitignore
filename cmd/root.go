@@ -20,11 +20,6 @@ import (
 
 const gitignoreUrl = "https://api.github.com/repos/github/gitignore/contents"
 
-type Files struct {
-	Tree []File `json:"tree"`
-	Sha  string `json:"sha"`
-}
-
 type File struct {
 	Path string `json:"path"`
 	Sha  string `json:"sha"`
