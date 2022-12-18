@@ -8,13 +8,14 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/spf13/cobra"
 )
 
 const gitignoreUrl = "https://api.github.com/repos/github/gitignore/contents"
@@ -37,21 +38,24 @@ type FileContent struct {
 	Url      string `json:"url"`
 	Content  string `json:"content"`
 	Encoding string `json:"encoding"`
+	Payload  string
 }
 
 type Commands map[string]File
 
+var commands = make(Commands)
+
 func (con File) getPayload() string {
 	var res FileContent
 	getJson(con.Url, &res)
-	var dec, _ = b64.StdEncoding.DecodeString(res.Content)
-	return string(dec)
+
+	dec, _ := b64.StdEncoding.DecodeString(res.Content)
+	res.Payload = string(dec)
+	return res.Payload
 }
 
-var commands = make(Commands)
-
 func getGitIgnore(filetype string) string {
-	var command = commands[filetype]
+	command := commands[filetype]
 	return command.getPayload()
 }
 
@@ -77,11 +81,11 @@ func getJson(url string, target interface{}) error {
 		log.Fatal(err)
 		return err
 	}
-	var body, error = ioutil.ReadAll(r.Body)
+	body, err := ioutil.ReadAll(r.Body)
 
-	if error != nil {
-		log.Fatal(error)
-		return error
+	if err != nil {
+		log.Fatal(err)
+		return err
 	}
 
 	return json.Unmarshal(body, &target)
@@ -92,7 +96,7 @@ func getCommands() Commands {
 	getJson(gitignoreUrl, &files)
 
 	for i := 0; i < len(files); i++ {
-		var file = files[i]
+		file := files[i]
 		if strings.Contains(file.Path, ".gitignore") {
 			command := strings.ToLower(strings.Split(file.Path, ".gitignore")[0])
 			commands[command] = file
