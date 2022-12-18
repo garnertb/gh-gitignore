@@ -49,13 +49,28 @@ type FileContent struct {
 	Payload  string
 }
 
-type Commands map[string]File
+type Commands struct {
+	commands map[string]command
+}
 
-var commands = make(Commands)
+func (c *Commands) runCommand(name string) string {
+	return c.commands[name].getGitIgnore()
+}
 
-func getGitIgnore(filetype string) string {
-	command := commands[filetype]
-	return command.getPayload()
+func (c *Commands) registerCommand(com command) {
+	if c.commands == nil {
+		c.commands = make(map[string]command)
+	}
+	c.commands[com.Arg] = com
+}
+
+type command struct {
+	Arg  string
+	File File
+}
+
+func (c command) getGitIgnore() string {
+	return c.File.getPayload()
 }
 
 var rootCmd = &cobra.Command{
@@ -67,8 +82,9 @@ var rootCmd = &cobra.Command{
 	Args:    cobra.ExactValidArgs(1),
 	Example: "gh-gitignore node",
 	Run: func(cmd *cobra.Command, args []string) {
-		var filetype = args[0]
-		fmt.Println(getGitIgnore(filetype))
+		c := loadCommands()
+		v := c.runCommand(args[0])
+		fmt.Println(v)
 	},
 }
 
@@ -90,15 +106,16 @@ func getJson(url string, target interface{}) error {
 	return json.Unmarshal(body, &target)
 }
 
-func getCommands() Commands {
+func loadCommands() Commands {
 	var files []File
+	var commands Commands
 	getJson(gitignoreUrl, &files)
 
 	for i := 0; i < len(files); i++ {
 		file := files[i]
 		if file.isSupported() {
-			command := strings.ToLower(strings.Split(file.Path, ".gitignore")[0])
-			commands[command] = file
+			arg := strings.ToLower(strings.Split(file.Path, ".gitignore")[0])
+			commands.registerCommand(command{Arg: arg, File: file})
 		}
 	}
 
@@ -108,7 +125,6 @@ func getCommands() Commands {
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
-	getCommands()
 	err := rootCmd.Execute()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "There was an error while executing gitignore '%s'", err)
