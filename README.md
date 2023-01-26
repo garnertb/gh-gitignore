@@ -2,6 +2,12 @@
 
 This `gh` extension enables developers to quickly bootstrap new projects with the appropriate `.gitignore` through a CLI interface.
 
+## Install
+
+```bash
+gh extension install garnertb/gh-gitignore
+```
+
 ## Examples
 
 Bootstrap a node project with the [nodejs gitignore](https://github.com/github/gitignore/blob/main/Node.gitignore).
