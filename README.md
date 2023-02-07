@@ -2,6 +2,8 @@
 
 This `gh` extension enables developers to quickly bootstrap new projects with the appropriate `.gitignore` through a CLI interface.
 
+<p align="center"><img src="/img/terraform.gif?raw=true"/></p>
+
 ## Install
 
 ```bash
