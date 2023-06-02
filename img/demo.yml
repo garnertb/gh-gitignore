@@ -144,8 +144,6 @@ records:
     content: r
   - delay: 103
     content: r
-  - delay: 88
-    content: r
   - delay: 214
     content: a
   - delay: 156
