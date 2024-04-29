@@ -1,5 +1,13 @@
 # gh gitignore
 
+>[!TIP]
+> You can now use the gitignore api endpoint and a gh alias to achieve the same result as this project:
+>
+> ```bash
+> $ gh alias set --shell .gitignore 'gh api -X GET /gitignore/templates/"$1" --jq ".source"'
+> $ gh .gitignore Terraform >> .gitignore
+> ```
+
 This `gh` extension enables developers to quickly bootstrap new projects with the appropriate `.gitignore` through a CLI interface.
 
 <p align="center"><img src="/img/terraform.gif?raw=true"/></p>
